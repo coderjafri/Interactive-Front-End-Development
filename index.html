@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width initial-scale=1.0">
+    <title>Data Visualization D3 and DC </title>
+    <!-- GLOBAL MAINLY STYLES-->
+    <link href="./assets/vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="./assets/vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <link href="./assets/vendors/themify-icons/css/themify-icons.css" rel="stylesheet" />
+    <!-- PLUGINS STYLES-->
+    <!-- THEME STYLES-->
+    <link href="assets/css/main.min.css" rel="stylesheet" />
+    <script type="text/javascript" src="assets/d3/d3.v3.js"></script>
+    <!-- PAGE LEVEL STYLES-->
+</head>
+
+<body class="fixed-navbar">
+    <div class="page-wrapper">
+        <!-- START HEADER-->
+        <header class="header">
+            <div class="page-brand">
+                <a class="link" href="">
+                    <span class="brand">
+                        <span class="brand-tip">Data Visualization</span>
+                    </span>
+                    <span class="brand-mini">DV</span>
+                </a>
+            </div>
+           
+        </header>
+        <!-- END HEADER-->
+        <!-- START SIDEBAR-->
+        <nav class="page-sidebar" id="sidebar">
+            <div id="sidebar-collapse">
+               
+                <ul class="side-menu metismenu">
+                    <li>
+                        <a href=""><i class="sidebar-item-icon fa fa-th-large"></i>
+                            <span class="nav-label">Chart</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <!-- END SIDEBAR-->
+        <div class="content-wrapper">
+            <!-- START PAGE CONTENT-->
+            <div class="page-heading">
+                <h1 class="page-title">Data Visualization D3 and DC</h1>
+                <ol class="breadcrumb">
+                    
+            </div>
+            <div class="page-content fade-in-up">
+               
+
+                    <div class="col-md-12">
+                        <div class="ibox">
+                            <div class="ibox-head">
+                            </div>
+                            <div class="ibox-body">
+                                <div id="carType">
+    <strong>Car Type</strong>
+    <span class="reset" style="display: none;">Selected: <span class="filter"></span></span>
+    <a class="reset" href="javascript:carTypeChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+
+    <div class="clearfix"></div>
+
+    </div>
+
+    <div id="gateName">
+        <strong>Gate Name</strong>
+    <span class="reset" style="display: none;">Selected: <span class="filter"></span></span>
+    <a class="reset" href="javascript:gateNameChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+
+    <div class="clearfix"></div>
+    </div>
+
+    <div>
+      <div class="dc-data-count">
+          <span class="filter-count"></span> selected out of <span class="total-count"></span> records | <a
+              href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
+    </div>
+    </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+               
+        
+            </div>
+             
+        </div>
+    </div>
+    <!-- BEGIN THEME CONFIG PANEL-->
+   
+    <!-- END THEME CONFIG PANEL-->
+    <!-- BEGIN PAGA BACKDROPS-->
+    <div class="sidenav-backdrop backdrop"></div>
+    <div class="preloader-backdrop">
+        <div class="page-preloader">Loading</div>
+    </div>
+    <!-- END PAGA BACKDROPS-->
+    <!-- CORE PLUGINS-->
+    <script src="./assets/vendors/jquery/dist/jquery.min.js" type="text/javascript"></script>
+    <script src="./assets/vendors/popper.js/dist/umd/popper.min.js" type="text/javascript"></script>
+    <script src="./assets/vendors/bootstrap/dist/js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="./assets/vendors/metisMenu/dist/metisMenu.min.js" type="text/javascript"></script>
+    <script src="./assets/vendors/jquery-slimscroll/jquery.slimscroll.min.js" type="text/javascript"></script>
+    <!-- PAGE LEVEL PLUGINS-->
+    <script src="./assets/vendors/chart.js/dist/Chart.min.js" type="text/javascript"></script>
+    <!-- CORE SCRIPTS-->
+    <script src="assets/js/app.min.js" type="text/javascript"></script>
+    <!-- PAGE LEVEL SCRIPTS-->
+    <script src="./assets/js/scripts/chartjs_demo.js" type="text/javascript"></script>
+        <script src="crossfilter.js"></script>
+    <script src="d3.js"></script>
+    <script src="dc.js"></script>
+
+<script>
+
+        var carTypeChart = dc.rowChart("#carType"),
+            gateNameChart = dc.rowChart("#gateName"),
+            visCount = dc.dataCount(".dc-data-count"),
+            visTable = dc.dataTable(".dc-data-table");
+
+    // Full dataset could give issues because of gzip
+    // var url = "Lekagul Sensor Data.csv.gz";
+    var url = "entry.csv";
+
+        d3.csv(url, function (err, data) {
+            // Timestamp,car-id,car-type,gate-name
+            // 2015-05-01 00:43:28,20154301124328-262,4,entrance3
+            // 2015-05-01 01:03:48,20154301124328-262,4,general-gate1
+            // 2015-05-01 01:06:24,20154301124328-262,4,ranger-stop2
+            // 2015-05-01 01:09:25,20154301124328-262,4,ranger-stop0
+            if (err) throw err;
+
+            data.forEach(function (d) {
+                d.Timestamp = new Date(d.Timestamp);
+            });
+
+            var ndx = crossfilter(data);
+            var all = ndx.groupAll();
+
+            var carTypeDim = ndx.dimension(function (d) { return d["car-type"]; });
+            var gateNameDim = ndx.dimension(function (d) { return d["gate-name"]; });
+            var dateDim = ndx.dimension(function (d) { return d.Timestamp; });
+
+            var carTypeGroup = carTypeDim.group();
+            var gateNameGroup = gateNameDim.group();
+            var dateGroup = dateDim.group();
+
+
+            carTypeChart
+                .dimension(carTypeDim)
+                .group(carTypeGroup)
+                .elasticX(true);
+
+            gateNameChart
+                .dimension(gateNameDim)
+                .group(gateNameGroup)
+                .elasticX(true)
+                .data(function (group) { return group.top(10); });
+
+
+            visCount
+                .dimension(ndx)
+                .group(all);
+
+            visTable
+                .dimension(dateDim)
+        // Data table does not use crossfilter group but rather a closure
+        // as a grouping function
+                .group(function (d) {
+            var format = d3.format('02d');
+            return d.Timestamp.getFullYear() + '/' + format((d.Timestamp.getMonth() + 1));
+        })
+                .columns([
+                    "Timestamp",
+                    "car-id",
+                    "car-type",
+                    "gate-name"
+                    ]);
+
+            dc.renderAll();
+
+        });
+    </script>
+
+
+</body>
+
+</html>
