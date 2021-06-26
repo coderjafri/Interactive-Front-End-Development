@@ -1,4 +1,4 @@
-# d3anddcdatavisualization
+# Interactive Front End Project
 
 To run the example remember to start an http-server such as
 
